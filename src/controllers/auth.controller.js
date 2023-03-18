@@ -41,4 +41,9 @@ const register = async (req, res) => {
         });
 }
 
-module.exports = {  login, register }   
+const me = async (req, res) => {
+    console.log("me içinde");
+    return new Response(req.user).success(res);
+  };
+
+module.exports = {  login, register, me }   
