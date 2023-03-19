@@ -16,7 +16,7 @@ const createToken = async (user, res) => {
   return res.status(201).json({
     success: true,
     token,
-    message: "Başarılı",
+    message: "Token created successfully",
   });
 };
 
@@ -26,18 +26,18 @@ const tokenCheck = async (req, res, next) => {
     req.headers.authorization.startsWith("Bearer ");
 
   if (!headerToken)
-    throw new APIError("Geçersiz Oturum Lütfen Oturum Açın", 401);
+    throw new APIError("Invalid session, please try again", 401);
 
   const token = req.headers.authorization.split(" ")[1];
 
   await jwt.verify(token, process.env.JWT_SECRET_KEY, async (err, decoded) => {
-    if (err) throw new APIError("Geçersiz Token", 401);
+    if (err) throw new APIError("Invalid Token", 401);
 
     const userInfo = await user
       .findById(decoded.sub)
       .select("_id name lastname email ");
 
-    if (!userInfo) throw new APIError("Geçersiz Token", 401);
+    if (!userInfo) throw new APIError("Invalid Token", 401);
 
     req.user = userInfo;
     next();
@@ -65,12 +65,12 @@ const decodedTemporaryToken = async (temporaryToken) => {
     token,
     process.env.JWT_TEMPORARY_KEY,
     async (err, decoded) => {
-      if (err) throw new APIError("Geçersiz Token", 401);
+      if (err) throw new APIError("Invalid Token", 401);
 
       userInfo = await user
         .findById(decoded.sub)
         .select("_id name lastname email");
-      if (!userInfo) throw new APIError("Geçersiz Token", 401);
+      if (!userInfo) throw new APIError("Invalid Token", 401);
     }
   );
 

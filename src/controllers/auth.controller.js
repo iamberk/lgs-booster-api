@@ -2,7 +2,11 @@ const user = require("../models/user.model");
 const bcrypt = require("bcrypt");
 const APIError = require("../utils/errors");
 const Response = require("../utils/response");
-const { createToken, createTemporaryToken, decodedTemporaryToken } = require("../middlewares/auth");
+const {
+  createToken,
+  createTemporaryToken,
+  decodedTemporaryToken,
+} = require("../middlewares/auth");
 const crypto = require("crypto");
 const sendEmail = require("../utils/sendMail");
 const moment = require("moment");
@@ -13,12 +17,13 @@ const login = async (req, res) => {
 
   const userInfo = await user.findOne({ email });
 
-  if (!userInfo) throw new APIError("Email yada Şifre Hatalıdır !", 401);
+  if (!userInfo) throw new APIError("Email or password is incorrect!", 401);
 
   const comparePassword = await bcrypt.compare(password, userInfo.password);
   console.log(comparePassword);
 
-  if (!comparePassword) throw new APIError("Email yada Şifre Hatalıdır !", 401);
+  if (!comparePassword)
+    throw new APIError("Email or password is incorrect!", 401);
 
   createToken(userInfo, res);
 };
@@ -29,22 +34,23 @@ const register = async (req, res) => {
   const userCheck = await user.findOne({ email });
 
   if (userCheck) {
-    throw new APIError("Girmiş Olduğunuz Email Kullanımda !", 401);
+    throw new APIError(
+      "Email already exist, please enter a different email!",
+      401
+    );
   }
 
   req.body.password = await bcrypt.hash(req.body.password, 10);
-
-  console.log("hash şifre : ", req.body.password);
 
   const userSave = new user(req.body);
 
   await userSave
     .save()
     .then((data) => {
-      return new Response(data, "Kayıt Başarıyla Eklendi").created(res);
+      return new Response(data, "User registered succesfully").created(res);
     })
     .catch((err) => {
-      throw new APIError("Kullanıcı Kayıt Edilemedi !", 400);
+      throw new APIError("User can not registered, please try again!", 400);
     });
 };
 
@@ -59,20 +65,16 @@ const forgetPassword = async (req, res) => {
     .findOne({ email })
     .select(" name lastname email ");
 
-  if (!userInfo) return new APIError("Geçersiz Kullanıcı", 400);
-
-  console.log("userInfo : ", userInfo);
+  if (!userInfo) return new APIError("Invalid username", 400);
 
   const resetCode = crypto.randomBytes(3).toString("hex");
 
-  console.log(resetCode);
-
-  // await sendEmail({
-  //     from: "base.api.proje@outlook.com",
-  //     to: userInfo.email,
-  //     subject: "Şifre Sıfırlama",
-  //     text: `Şifre Sıfırlama Kodunuz ${resetCode}`
-  // })
+  await sendEmail({
+    from: process.env.EMAIL_ADDRESS,
+    to: userInfo.email,
+    subject: "Password Reset",
+    text: `Your password reset code: ${resetCode}`,
+  });
 
   await user.updateOne(
     { email },
@@ -86,7 +88,7 @@ const forgetPassword = async (req, res) => {
     }
   );
 
-  return new Response(true, "Lütfen Mail Kutunuzu Kontrol Ediniz").success(res);
+  return new Response(true, "Please check your email box.").success(res);
 };
 
 const resetCodeCheck = async (req, res) => {
@@ -96,30 +98,26 @@ const resetCodeCheck = async (req, res) => {
     .findOne({ email })
     .select("_id name lastname email reset");
 
-  if (!userInfo) throw new APIError("Geçersiz Kod !", 401);
+  if (!userInfo) throw new APIError("Invalid Code!", 401);
 
   const dbTime = moment(userInfo.reset.time);
   const nowTime = moment(new Date());
 
   const timeDiff = dbTime.diff(nowTime, "minutes");
 
-  console.log("Zaman farkı : ", timeDiff);
-
   if (timeDiff <= 0 || userInfo.reset.code !== code) {
-    throw new APIError("Geçersiz Kod", 401);
+    throw new APIError("Invalid Code", 401);
   }
-  
+
   const temporaryToken = await createTemporaryToken(
     userInfo._id,
     userInfo.email
   );
 
-
   return new Response(
     { temporaryToken },
-    "Şifre Sıfırlama Yapabilirsiniz"
+    "You can reset your password now."
   ).success(res);
-  
 };
 
 const resetPassword = async (req, res) => {
@@ -141,7 +139,10 @@ const resetPassword = async (req, res) => {
     }
   );
 
-  return new Response(decodedToken, "Şifre Sıfırlama Başarılı").success(res)
+  return new Response(
+    decodedToken,
+    "Password reset is complated succesfully"
+  ).success(res);
 };
 
 module.exports = {
