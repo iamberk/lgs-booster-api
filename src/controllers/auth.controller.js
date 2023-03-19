@@ -61,9 +61,11 @@ const forgetPassword = async (req, res) => {
 
   if (!userInfo) return new APIError("Geçersiz Kullanıcı", 400);
 
+  console.log("userInfo : ", userInfo);
 
   const resetCode = crypto.randomBytes(3).toString("hex");
 
+  console.log(resetCode);
 
   // await sendEmail({
   //     from: "base.api.proje@outlook.com",
@@ -106,16 +108,18 @@ const resetCodeCheck = async (req, res) => {
   if (timeDiff <= 0 || userInfo.reset.code !== code) {
     throw new APIError("Geçersiz Kod", 401);
   }
-
+  
   const temporaryToken = await createTemporaryToken(
     userInfo._id,
     userInfo.email
   );
 
+
   return new Response(
     { temporaryToken },
     "Şifre Sıfırlama Yapabilirsiniz"
   ).success(res);
+  
 };
 
 const resetPassword = async (req, res) => {

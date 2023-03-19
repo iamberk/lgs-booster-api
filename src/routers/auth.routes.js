@@ -1,14 +1,25 @@
-const router = require('express').Router();
-const {login, register, me, forgetPassword} = require("../controllers/auth.controller");
-const AuthValidation = require('../middlewares/Validations/auth.validation'); 
-const { tokenCheck } = require('../middlewares/auth');
+const router = require("express").Router();
+const {
+  login,
+  register,
+  me,
+  forgetPassword,
+  resetCodeCheck,
+  resetPassword,
+} = require("../controllers/auth.controller");
+const authValidation = require("../middlewares/validations/auth.validation");
+const { tokenCheck } = require("../middlewares/auth");
 
-router.post('/register', AuthValidation.register, register);
+router.post("/login", authValidation.login, login);
 
-router.post('/login', AuthValidation.login, login);
+router.post("/register", authValidation.register, register);
 
-router.get('/me', tokenCheck, me);
+router.get("/me", tokenCheck, me);
 
-router.post("/forget-password", forgetPassword)
+router.post("/forget-password", forgetPassword);
+
+router.post("/reset-code-check", resetCodeCheck);
+
+router.post("/reset-password", resetPassword);
 
 module.exports = router;
