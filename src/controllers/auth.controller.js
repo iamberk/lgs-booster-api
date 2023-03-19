@@ -13,7 +13,6 @@ const login = async (req, res) => {
         throw new APIError("Password or email is incorrect!",401)
 
     const comparePassword = await bcrypt.compare(password, userInfo.password)
-    console.log(comparePassword);
 
     if (!comparePassword)
         throw new APIError("Password or email is incorrect!",401)
@@ -42,7 +41,6 @@ const register = async (req, res) => {
 }
 
 const me = async (req, res) => {
-    console.log("me içinde");
     return new Response(req.user).success(res);
   };
 

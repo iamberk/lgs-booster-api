@@ -5,4 +5,4 @@ mongoose.set("strictQuery", false);
 mongoose.connect(process.env.DB_URL,{
     useNewUrlParser: true,
      useUnifiedTopology: true,
-}).then(()=>{console.log("bağlandı");}).catch((err)=>{console.log(err);});
+}).then(()=>{console.log("Database connection is succesfull");}).catch((err)=>{console.log(err);});
