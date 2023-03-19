@@ -7,6 +7,7 @@ const port = process.env.PORT || 5001;
 const errorHandlerMiddleware = require('./src/middlewares/errorHandler');
 const cors = require('cors');
 const path = require('path');
+const apiLimiter = require('./src/middlewares/rateLimit');
 const corsOptions = require('./src/helpers/corsOptions');
 const mongoSanitize = require('express-mongo-sanitize');
 
@@ -18,7 +19,9 @@ app.use(express.urlencoded({ limit: '50mb', extended: true , parameterLimit: 500
 app.use(express.static(path.join(__dirname, "public")))
 app.use("/uploads", express.static(__dirname))
 
-app.use(cors(corsOptions));
+app.use(cors(corsOptions)); 
+
+app.use("/api", apiLimiter);
 
 app.use(
     mongoSanitize({

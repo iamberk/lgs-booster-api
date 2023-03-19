@@ -5,7 +5,7 @@ const upload = require("../middlewares/lib/upload");
 const auth =  require("./auth.routes");
 const Response = require('../utils/response');
 
-router.use("/auth", auth);
+router.use( auth);
 
 router.post("/upload", function (req, res) {
     upload(req, res, function (err) {
