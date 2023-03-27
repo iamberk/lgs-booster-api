@@ -12,154 +12,292 @@ const sendEmail = require("../utils/sendMail");
 const moment = require("moment");
 
 const login = async (req, res) => {
-  console.log("login");
-  const { email, password } = req.body;
+  try {
+    console.log("login çalıştı");
+    const { email, password } = req.body;
 
-  const userInfo = await user.findOne({ email });
+    const userInfo = await user.findOne({ email });
 
-  if (!userInfo) throw new APIError("Email or password is incorrect!", 401);
+    if (!userInfo) throw new APIError("Email or password is incorrect!", 401);
 
-  const comparePassword = await bcrypt.compare(password, userInfo.password);
-  console.log(comparePassword);
+    const comparePassword = await bcrypt.compare(password, userInfo.password);
 
-  if (!comparePassword)
-    throw new APIError("Email or password is incorrect!", 401);
+    if (!comparePassword)
+      throw new APIError("Email or password is incorrect!", 401);
 
-  createToken(userInfo, res);
+    createToken(userInfo, res);
+  } catch (error) {
+    return new Response(error, "Unexcepted error, please try again!").error500(
+      res
+    );
+  }
 };
 
 const register = async (req, res) => {
-  const { email, username } = req.body;
+  try {
+    console.log("register çalıştı");
 
-  const userMailCheck = await user.findOne({ email });
-  const usernameCheck = await user.findOne({ username });
+    const { email, username } = req.body;
 
-  if (usernameCheck) {
-    throw new APIError(
-      "Username already exist, please enter a different username!",
-      401
+    const userMailCheck = await user.findOne({ email });
+    const usernameCheck = await user.findOne({ username });
+
+    if (usernameCheck) {
+      throw new APIError(
+        "Username already exist, please enter a different username!",
+        401
+      );
+    }
+    if (userMailCheck) {
+      throw new APIError(
+        "Email already exist, please enter a different email!",
+        401
+      );
+    }
+    req.body.password = await bcrypt.hash(req.body.password, 10);
+    const userSave = new user(req.body);
+
+    await userSave
+      .save()
+      .then((data) => {
+        return new Response(data, "User registered succesfully").created(res);
+      })
+      .catch((err) => {
+        console.log(err);
+        throw new APIError("User can not registered, please try again!", 400);
+      });
+  } catch (error) {
+    return new Response(error, "Unexcepted error, please try again!").error500(
+      res
     );
   }
-  if (userMailCheck) {
-    throw new APIError(
-      "Email already exist, please enter a different email!",
-      401
-    );
-  }
-
-  req.body.password = await bcrypt.hash(req.body.password, 10);
-
-  const userSave = new user(req.body);
-
-  await userSave
-    .save()
-    .then((data) => {
-      return new Response(data, "User registered succesfully").created(res);
-    })
-    .catch((err) => {
-      throw new APIError("User can not registered, please try again!", 400);
-    });
 };
 
 const me = async (req, res) => {
-  const { _id, email, username } = req.user;
-  const userData = {
-    _id,
-    email,
-    username,
-  };
-  console.log(req.user, req.body)
-  return new Response(userData).success(res);
+  try {
+    console.log("me çalıştı");
+    const { _id, email, username } = req.user;
+    const userData = {
+      _id,
+      email,
+      username,
+    };
+    return new Response(userData).success(res);
+  } catch (error) {
+    return new Response(error, "Unexcepted error, please try again!").error500(
+      res
+    );
+  }
 };
 
 const forgetPassword = async (req, res) => {
-  const { email } = req.body;
+  try {
+    console.log("forget password çalıştı");
 
-  const userInfo = await user
-    .findOne({ email })
-    .select(" name lastname email ");
+    const { email } = req.body;
 
-  if (!userInfo) return new APIError("Invalid username", 400);
+    const userInfo = await user
+      .findOne({ email })
+      .select(" name lastname email ");
 
-  const resetCode = crypto.randomBytes(3).toString("hex");
-  console.log("resetCode : ", resetCode);
+    if (!userInfo) return new APIError("Invalid username", 400);
 
-  // await sendEmail({
-  //   from: process.env.EMAIL_ADDRESS,
-  //   to: userInfo.email,
-  //   subject: "Password Reset",
-  //   text: `Your password reset code: ${resetCode}`,
-  // });
+    const resetCode = crypto.randomBytes(3).toString("hex");
+    console.log("resetCode : ", resetCode);
 
-  await user.updateOne(
-    { email },
-    {
-      reset: {
-        code: resetCode,
-        time: moment(new Date())
-          .add(15, "minute")
-          .format("YYYY-MM-DD HH:mm:ss"),
-      },
-    }
-  );
+    // await sendEmail({
+    //   from: process.env.EMAIL_ADDRESS,
+    //   to: userInfo.email,
+    //   subject: "Password Reset",
+    //   text: `Your password reset code: ${resetCode}`,
+    // });
 
-  return new Response(true, "Please check your email box.").success(res);
+    await user.updateOne(
+      { email },
+      {
+        reset: {
+          code: resetCode,
+          time: moment(new Date())
+            .add(15, "minute")
+            .format("YYYY-MM-DD HH:mm:ss"),
+        },
+      }
+    );
+
+    return new Response(true, "Please check your email box.").success(res);
+  } catch (error) {
+    return new Response(error, "Unexcepted error, please try again!").error500(
+      res
+    );
+  }
 };
 
 const resetCodeCheck = async (req, res) => {
-  const { email, code } = req.body;
+  try {
+    console.log("reset-code-check çalıştı");
 
-  const userInfo = await user
-    .findOne({ email })
-    .select("_id name lastname email reset");
+    const { email, code } = req.body;
 
-  if (!userInfo) throw new APIError("Invalid Code!", 401);
+    const userInfo = await user
+      .findOne({ email })
+      .select("_id name lastname email reset");
 
-  const dbTime = moment(userInfo.reset.time);
-  const nowTime = moment(new Date());
+    if (!userInfo) throw new APIError("Invalid Code!", 401);
 
-  const timeDiff = dbTime.diff(nowTime, "minutes");
+    const dbTime = moment(userInfo.reset.time);
+    const nowTime = moment(new Date());
 
-  if (timeDiff <= 0 || userInfo.reset.code !== code) {
-    throw new APIError("Invalid Code", 401);
+    const timeDiff = dbTime.diff(nowTime, "minutes");
+
+    if (timeDiff <= 0 || userInfo.reset.code !== code) {
+      throw new APIError("Invalid Code", 401);
+    }
+
+    const temporaryToken = await createTemporaryToken(
+      userInfo._id,
+      userInfo.email
+    );
+
+    return new Response(
+      { temporaryToken },
+      "You can reset your password now."
+    ).success(res);
+  } catch (error) {
+    return new Response(error, "Unexcepted error, please try again!").error500(
+      res
+    );
   }
-
-  const temporaryToken = await createTemporaryToken(
-    userInfo._id,
-    userInfo.email
-  );
-
-  return new Response(
-    { temporaryToken },
-    "You can reset your password now."
-  ).success(res);
 };
 
 const resetPassword = async (req, res) => {
-  const { password, temporaryToken } = req.body;
+  try {
+    console.log("reset-password çalıştı");
 
-  const decodedToken = await decodedTemporaryToken(temporaryToken);
-  console.log("decodedToken : ", decodedToken);
+    const { password, temporaryToken } = req.body;
 
-  const hashPassword = await bcrypt.hash(password, 10);
+    const decodedToken = await decodedTemporaryToken(temporaryToken);
+    console.log("decodedToken : ", decodedToken);
 
-  await user.findByIdAndUpdate(
-    { _id: decodedToken._id },
-    {
-      reset: {
-        code: null,
-        time: null,
-      },
-      password: hashPassword,
-    }
-  );
+    const hashPassword = await bcrypt.hash(password, 10);
 
-  return new Response(
-    decodedToken,
-    "Password reset is complated succesfully"
-  ).success(res);
+    await user.findByIdAndUpdate(
+      { _id: decodedToken._id },
+      {
+        reset: {
+          code: null,
+          time: null,
+        },
+        password: hashPassword,
+      }
+    );
+
+    return new Response(
+      decodedToken,
+      "Password reset is complated succesfully"
+    ).success(res);
+  } catch (error) {
+    return new Response(error, "Unexcepted error, please try again!").error500(
+      res
+    );
+  }
 };
 
+const getUserbyId = async (req, res) => {
+  try {
+    console.log("getUserById çalıştı");
+
+    const { id } = req.params;
+
+    const userInfo = await user.findById(id);
+
+    if (!userInfo) throw new APIError("User not found!", 401);
+
+    return new Response(userInfo).success(res);
+  } catch (error) {
+    return new Response(error, "Unexcepted error, please try again!").error500(
+      res
+    );
+  }
+};
+
+const getAllUsers = async (req, res) => {
+  try {
+    console.log("getAllUsers çalıştı");
+
+    const userInfo = await user.find();
+
+    if (!userInfo) throw new APIError("Users not found!", 401);
+
+    return new Response(userInfo).success(res);
+  } catch (error) {
+    return new Response(error, "Unexcepted error, please try again!").error500(
+      res
+    );
+  }
+};
+
+const deleteUser = async (req, res) => {
+  try {
+    console.log("deleteUser çalıştı");
+
+    const { id } = req.params;
+
+    const userInfo = await user.findByIdAndDelete(id);
+
+    if (!userInfo) throw new APIError("User not found!", 401);
+
+    return new Response(userInfo).success(res);
+  } catch (error) {
+    return new Response(error, "Unexcepted error, please try again!").error500(
+      res
+    );
+  }
+};
+
+const updateProfile = async (req, res) => {
+  try {
+    console.log("updateProfile çalıştı");
+
+    const { id } = req.params;
+    const { name, lastname, username, password } = req.body;
+
+    const userInfo = await user.findById(id);
+
+    if (!userInfo) {
+      throw new APIError("User not found!", 401);
+    }
+
+    const comparePassword = await bcrypt.compare(password, userInfo.password);
+
+    if (!comparePassword)
+      throw new APIError("Email or password is incorrect!", 401);
+
+    const usernameCheck = await user.findOne({ username });
+
+    if (usernameCheck) {
+      throw new APIError(
+        "Username already exist, please enter a different username!",
+        401
+      );
+    }
+    const userDetail = {
+      name,
+      lastname,
+      username,
+    };
+
+    userInfo.updateOne(userDetail, (err, data) => {
+      if (err) {
+        throw new APIError("User can not updated, please try again!", 400);
+      }
+      return new Response(data, "User updated succesfully").success(res);
+    });
+  } catch (error) {
+    return new Response(error, "Unexcepted error, please try again!").error500(
+      res
+    );
+  }
+};
 
 module.exports = {
   login,
@@ -167,9 +305,12 @@ module.exports = {
   me,
   forgetPassword,
   resetCodeCheck,
+  updateProfile,
   resetPassword,
+  getUserbyId,
+  deleteUser,
+  getAllUsers,
 };
-
 
 /* 
 

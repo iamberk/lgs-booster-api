@@ -19,6 +19,7 @@ class Response {
     });
   }
   error500(res) {
+    console.log(this.data);
     return res.status(500).json({
       success: false,
       message: this.message ?? "Internal Server Error",

@@ -4,60 +4,108 @@ const APIError = require("../utils/errors");
 const Response = require("../utils/response");
 
 const createDay = async (req, res) => {
-    const {   user_id } = req.body;
+  const { practices, user_id } = req.body;
 
-    const userCheck = await user.findById(user_id);
+  const userCheck = await user.findById(user_id);
 
-    if (!userCheck) {
-        throw new APIError("User not found!", 401);
-    }
-    
-    const daySave = new day(req.body);
-    
-    await daySave
+  if (!userCheck) {
+    throw new APIError("User not found!", 401);
+  }
+
+  const targetUser = await user.findById(user_id);
+
+  const dayDetail = {
+    practices,
+    user_id,
+    day_number: targetUser.last_day + 1,
+  };
+
+  const daySave = new day(dayDetail);
+
+  await daySave
     .save()
     .then((data) => {
+      user.findByIdAndUpdate(user_id, { $inc: { last_day: 1 } }, { new: true });
       return new Response(data, "Day created succesfully").created(res);
     })
     .catch((err) => {
+      console.log(err);
       throw new APIError("Day can not created, please try again!", 400);
     });
-}
+};
 
+const getDayById = async (req, res) => {
+  const { id } = req.params;
 
-// const register = async (req, res) => {
-//     const { email, username } = req.body;
-  
-//     const userMailCheck = await user.findOne({ email });
-//     const usernameCheck = await user.findOne({ username });
-  
-//     if (usernameCheck) {
-//       throw new APIError(
-//         "Username already exist, please enter a different username!",
-//         401
-//       );
-//     }
-//     if (userMailCheck) {
-//       throw new APIError(
-//         "Email already exist, please enter a different email!",
-//         401
-//       );
-//     }
-//   req.body.password = await bcrypt.hash(req.body.password, 10);
+  const dayInfo = await day.findById(id);
 
-//   const userSave = new user(req.body);
+  if (!dayInfo) {
+    throw new APIError("Day not found!", 401);
+  }
 
-//   await userSave
-//     .save()
-//     .then((data) => {
-//       return new Response(data, "User registered succesfully").created(res);
-//     })
-//     .catch((err) => {
-//       throw new APIError("User can not registered, please try again!", 400);
-//     });
-// };
+  return new Response(dayInfo, "Day found succesfully").success(res);
+};
 
+const getAllDays = async (req, res) => {
+  const days = await day.find();
 
+  return new Response(days, "Days found succesfully").success(res);
+};
+
+const updateDay = async (req, res) => {
+ try {
+     const { id } = req.params;
+     const { practices, user_id, day_number } = req.body;
+   
+     const dayInfo = await day.findById(id);
+   
+     if (!dayInfo) {
+       throw new APIError("Day not found!", 401);
+     }
+   
+     const dayDetail = {
+       practices,
+       user_id,
+       day_number,
+     };
+   
+     await dayInfo.updateOne(dayDetail, (err, data) => {
+       if (err) {
+         console.log(err);
+         throw new APIError("Day can not updated, please try again!", 400);
+       }
+   
+       return new Response(data, "Day updated succesfully").success(res);
+     });
+ } catch (error) {
+    return new Response(error, "Unexcepted error, please try again!").error500(res);
+ }
+};
+
+const deleteDay = async (req, res) => {
+ try {
+     const { id } = req.params;
+   
+     const dayInfo = await day.findById(id);
+   
+     if (!dayInfo) {
+       throw new APIError("Day not found!", 401);
+     }
+   
+     dayInfo.delete((err, data) => {
+       if (err) {
+         throw new APIError("Day can not deleted, please try again!", 400);
+       }
+       return new Response(data, "Day deleted succesfully").success(res);
+     });
+ } catch (error) {
+    return new Response(error, "Unexcepted error, please try again!").error500(res);
+ }
+};
 module.exports = {
-    createDay
-}
+  createDay,
+  getDayById,
+  getAllDays,
+  updateDay,
+  deleteDay,
+};

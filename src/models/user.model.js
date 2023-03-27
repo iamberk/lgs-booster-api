@@ -28,6 +28,11 @@ const userShema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    role: {
+      type: String,
+      default: "user",
+      enum: ["user", "admin"],
+    },
     days: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -93,7 +98,7 @@ const userShema = new mongoose.Schema(
       },
       subs_detail: {
         type: String,
-        default: "not subscribed",
+        default: "basic",
         enum: ["basic", "premium", "pro"],
       },
       expires_at: {

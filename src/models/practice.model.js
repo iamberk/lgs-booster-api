@@ -8,10 +8,12 @@ const practiceSchema = new mongoose.Schema({
     start_day:{
         type: Number,
         required: true,
+        min: 1,
     },
     end_day:{
         type: Number,
         required: true,
+        min: 1,
     },
     success_rate:{
         type: Number,
@@ -26,4 +28,4 @@ const practiceSchema = new mongoose.Schema({
 
 const Practice = mongoose.model('Practice', practiceSchema);
 
-model.exports = Practice;
+module.exports = Practice;
