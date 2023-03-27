@@ -12,6 +12,7 @@ const corsOptions = require("./src/helpers/corsOptions");
 const moment = require("moment-timezone");
 moment.tz.setDefault("Europe/Istanbul");
 const mongoSanitize = require("express-mongo-sanitize");
+const { swaggerDocs: V1SwaggerDocs } = require("./swagger");
 
 //Middlewares
 app.use(express.json());
@@ -19,6 +20,8 @@ app.use(express.json({ limit: "50mb" }));
 app.use(
   express.urlencoded({ limit: "50mb", extended: true, parameterLimit: 50000 })
 );
+
+
 
 app.use(express.static(path.join(__dirname, "public")));
 app.use("/uploads", express.static(__dirname));
@@ -33,8 +36,8 @@ app.use(
   })
 );
 
-const router = require("./src/routers/index");
-app.use("/api", router);
+const router = require("./src/v1/routers/index");
+app.use("/api/v1", router);
 
 app.get("/", (req, res) => {
   res.send({ message: "Hello From Express" });
@@ -48,6 +51,7 @@ app.listen(port, () => {
   console.log("#####               STARTING SERVER                  #####");
   console.log("##########################################################\n");
   console.log(`server running on → PORT ${port}`);
+  V1SwaggerDocs(app, port);
 });
 
 process.on("uncaughtException", (error) => {
