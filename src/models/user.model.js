@@ -12,6 +12,11 @@ const userShema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    username: {
+      type: String,
+      required: true,
+      trim: true,
+    },
     email: {
       type: String,
       required: true,
@@ -23,6 +28,26 @@ const userShema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    days: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Day",
+      },
+    ],
+    missed_days: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Day",
+      },
+    ],
+    day_status: {
+      type: Number,
+      default: 0,
+    },
+    last_day: {
+      type: Number,
+      default: 0,
+    },
     reset: {
       code: {
         type: String,
@@ -33,10 +58,55 @@ const userShema = new mongoose.Schema(
         default: null,
       },
     },
+    stats: {
+      point: {
+        type: Number,
+        default: 0,
+        min: 0,
+      },
+      streak_point: {
+        type: Number,
+        default: 0,
+        min: 0,
+      },
+      longest_streak:{
+        type: Number,
+        default: 0,
+        min: 0,
+      },
+      miss_count: {
+        type: Number,
+        default: 0,
+        min: 0,
+      },
+      success_rate: {
+        type: Number,
+        default: 0,
+        min: 0,
+        max: 100,
+      }
+    },
+    subscription: {
+      subscribe: {
+        type: Boolean,
+        default: false,
+      },
+      subs_detail: {
+        type: String,
+        default: "not subscribed",
+        enum: ["basic", "premium", "pro"],
+      },
+      expires_at: {
+        type: Date,
+        default: null,
+      },
+    },
   },
   { collection: "users", timestamps: true }
 );
 
-const user = mongoose.model("users", userShema);
+const user = mongoose.model("User", userShema);
 
 module.exports = user;
+
+

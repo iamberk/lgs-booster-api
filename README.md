@@ -2,6 +2,8 @@
 
 1. Giriş
 
+Bu API LGS Booster mobil uygulaması ve web yönetim paneli için kodlanmıştır.  
+
 2. API Tanımı
 
 3. Çalışma Yöntemi

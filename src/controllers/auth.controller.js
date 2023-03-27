@@ -29,11 +29,18 @@ const login = async (req, res) => {
 };
 
 const register = async (req, res) => {
-  const { email } = req.body;
+  const { email, username } = req.body;
 
-  const userCheck = await user.findOne({ email });
+  const userMailCheck = await user.findOne({ email });
+  const usernameCheck = await user.findOne({ username });
 
-  if (userCheck) {
+  if (usernameCheck) {
+    throw new APIError(
+      "Username already exist, please enter a different username!",
+      401
+    );
+  }
+  if (userMailCheck) {
     throw new APIError(
       "Email already exist, please enter a different email!",
       401
@@ -55,7 +62,14 @@ const register = async (req, res) => {
 };
 
 const me = async (req, res) => {
-  return new Response(req.user).success(res);
+  const { _id, email, username } = req.user;
+  const userData = {
+    _id,
+    email,
+    username,
+  };
+  console.log(req.user, req.body)
+  return new Response(userData).success(res);
 };
 
 const forgetPassword = async (req, res) => {
@@ -68,13 +82,14 @@ const forgetPassword = async (req, res) => {
   if (!userInfo) return new APIError("Invalid username", 400);
 
   const resetCode = crypto.randomBytes(3).toString("hex");
+  console.log("resetCode : ", resetCode);
 
-  await sendEmail({
-    from: process.env.EMAIL_ADDRESS,
-    to: userInfo.email,
-    subject: "Password Reset",
-    text: `Your password reset code: ${resetCode}`,
-  });
+  // await sendEmail({
+  //   from: process.env.EMAIL_ADDRESS,
+  //   to: userInfo.email,
+  //   subject: "Password Reset",
+  //   text: `Your password reset code: ${resetCode}`,
+  // });
 
   await user.updateOne(
     { email },
@@ -145,6 +160,7 @@ const resetPassword = async (req, res) => {
   ).success(res);
 };
 
+
 module.exports = {
   login,
   register,
@@ -153,3 +169,22 @@ module.exports = {
   resetCodeCheck,
   resetPassword,
 };
+
+
+/* 
+
+# User Detail
+updateEmail
+updateUsername
+
+
+# Day Detail
+updateDay - days, missed_days, miss_count, last_day, streak_point, longest_streak, day_status
+
+# Stats
+updateStats - point, success_rate
+
+
+# Subscription Detail
+updateSubscription
+*/

@@ -18,6 +18,8 @@ router.get("/me", tokenCheck, me);
 
 router.post("/forget-password", forgetPassword);
 
+// router.put("/update-profile", updateProfile);
+
 router.post("/reset-code-check", resetCodeCheck);
 
 router.post("/reset-password", resetPassword);

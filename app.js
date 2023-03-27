@@ -43,4 +43,19 @@ app.get("/", (req, res) => {
 // Error Handler
 app.use(errorHandlerMiddleware);
 
-app.listen(port, () => console.log(`Listening on port ${port}`));
+app.listen(port, () => {
+  console.log("##########################################################");
+  console.log("#####               STARTING SERVER                  #####");
+  console.log("##########################################################\n");
+  console.log(`server running on → PORT ${port}`);
+});
+
+process.on("uncaughtException", (error) => {
+  console.log(`uncaught exception: ${error.message}`);
+  process.exit(1);
+});
+
+process.on("unhandledRejection", (err, promise) => {
+  console.log(`Error ${err.message}`);
+  server.close(() => process.exit(1));
+});
