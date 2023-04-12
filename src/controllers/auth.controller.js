@@ -293,9 +293,7 @@ const updateProfile = async (req, res) => {
       return new Response(data, "User updated succesfully").success(res);
     });
   } catch (error) {
-    return new Response(error, "Unexcepted error, please try again!").error500(
-      res
-    );
+    return new Response(error, "Unexcepted error, please try again!").error500(res);
   }
 };
 

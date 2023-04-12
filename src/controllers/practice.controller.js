@@ -29,7 +29,7 @@ const createPractice = async (req, res) => {
     if (start_day > end_day) {
       throw new APIError("Start day must be less than end day!", 401);
     }
-    if (practice_type > 0 || practice_type < 5) {
+    if (practice_type < 0 || practice_type > 5) {
       throw new APIError("Practice type must be between 0 and 5!", 401);
     }
 
@@ -67,7 +67,7 @@ const getAllPractices = async (req, res) => {
 const updatePractice = async (req, res) => {
   try {
     const { id } = req.params;
-    const { practice_type, start_day, end_day } = req.body;
+    const { practice_type, start_day, end_day} = req.body;
 
     const practiceInfo = await Practice.findById(id);
 
@@ -82,7 +82,7 @@ const updatePractice = async (req, res) => {
       throw new APIError("Practice type must be between 0 and 5!", 401);
     }
 
-    await practiceInfo.updateOne(req.body, (err, data) => {
+    practiceInfo.updateOne(req.body, (err, data) => {
       if (err) {
         throw new APIError("Practice can not updated, please try again!", 400);
       }

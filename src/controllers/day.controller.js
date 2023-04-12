@@ -69,12 +69,10 @@ const updateDay = async (req, res) => {
        day_number,
      };
    
-     await dayInfo.updateOne(dayDetail, (err, data) => {
+      dayInfo.updateOne(dayDetail, (err, data) => {
        if (err) {
-         console.log(err);
          throw new APIError("Day can not updated, please try again!", 400);
        }
-   
        return new Response(data, "Day updated succesfully").success(res);
      });
  } catch (error) {

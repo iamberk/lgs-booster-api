@@ -45,6 +45,15 @@ const userShema = new mongoose.Schema(
         ref: "Day",
       },
     ],
+    /*
+      0 : Not Yet Publish
+      1 : Not Yet Complated in Time
+      2 : Complated in Time
+      3 : Missed Day 
+    */
+
+      
+  
     day_status: {
       type: Number,
       default: 0,

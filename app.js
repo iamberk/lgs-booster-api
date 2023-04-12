@@ -37,7 +37,7 @@ app.use(
 );
 
 const router = require("./src/v1/routers/index");
-app.use("/api/v1", router);
+app.use("/api", router);
 
 app.get("/", (req, res) => {
   res.send({ message: "Hello From Express" });
